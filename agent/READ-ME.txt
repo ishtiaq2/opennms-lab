@@ -1,0 +1,35 @@
+############################
+     RPI-A
+############################     
+
+SNMP Agent/Client
+
+sudo apt install -y snmpd snmp-mibs-downloader
+sudo mv /etc/snmp/snmpd.conf /etc/snmp/snmpd.conf.bak
+
+sudo nano /etc/snmp/snmpd.conf
+
+  # LISTEN ON ALL INTERFACES (Corrected spelling)
+  agentAddress udp:161
+  # ACCESS CONTROL
+  # Allow the 192.168.0.x subnet to access the full tree
+  rocommunity public 192.168.0.0/24
+  # INFO
+  sysLocation    Raspberry Pi3 Agent
+  sysContact     ishtiaq@rpi3
+
+sudo service snmpd restart
+
+
+Troubleshooting:
+
+Agent: sudo nc -u -l -p 161
+Manager: echo "hello" | nc -u 192.168.0.38 161
+
+
+Interested Matrices: 
+1. Temperature of your Pi
+2. Fan speed
+3. Custom application status
+
+sudo cp RPI-MONITOR-MIB.txt /usr/share/snmp/mibs

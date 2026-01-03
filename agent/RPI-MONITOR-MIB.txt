@@ -1,0 +1,54 @@
+RPI-MONITOR-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE, Integer32, experimental
+        FROM SNMPv2-SMI;
+
+rpiMonitor MODULE-IDENTITY
+    LAST-UPDATED "202310280000Z"  -- Updated date
+    ORGANIZATION "My Home Lab"
+    CONTACT-INFO "email: admin@homelab.local"
+    DESCRIPTION  "A custom MIB for monitoring Raspberry Pi sensors."
+    ::= { experimental 99 }
+
+-- ==========================================================
+-- 1. DATA OBJECTS (The Metrics)
+-- ==========================================================
+rpiSensors OBJECT IDENTIFIER ::= { rpiMonitor 1 }
+
+-- Existing Temperature Object
+rpiCpuTemp OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current CPU temperature of the Raspberry Pi in Celsius."
+    ::= { rpiSensors 1 }
+
+-- NEW: CPU Load Object
+rpiCpuLoad OBJECT-TYPE
+    SYNTAX      Integer32 (0..100)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current CPU load as a percentage (0-100)."
+    ::= { rpiSensors 2 }
+
+-- ==========================================================
+-- 2. NOTIFICATIONS (The Traps)
+-- ==========================================================
+rpiNotifications OBJECT IDENTIFIER ::= { rpiMonitor 2 }
+
+-- Existing High Temp Alert
+rpiHighTempAlert NOTIFICATION-TYPE
+    OBJECTS     { rpiCpuTemp }
+    STATUS      current
+    DESCRIPTION "Notification sent when CPU temperature exceeds threshold."
+    ::= { rpiNotifications 1 }
+
+-- NEW: High Load Alert
+rpiHighLoadAlert NOTIFICATION-TYPE
+    OBJECTS     { rpiCpuLoad }
+    STATUS      current
+    DESCRIPTION "Notification sent when CPU load exceeds threshold."
+    ::= { rpiNotifications 2 }
+
+END
