@@ -14,6 +14,8 @@ services:
     
     container_name: opennms-container
     hostname: opennms-host
+    cap_add:
+      - NET_RAW
     env_file:
       - .env
 
