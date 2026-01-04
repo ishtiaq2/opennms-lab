@@ -1,0 +1,2 @@
+chmod +x opennms-setup.sh
+./opennms-setup.sh
