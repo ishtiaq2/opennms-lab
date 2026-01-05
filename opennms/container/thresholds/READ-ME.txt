@@ -1,8 +1,3 @@
-podman exec opennms-container ls /opt/opennms/share/rrd/snmp
-
-podman exec opennms-container \
-ls -l /opt/opennms/share/rrd/snmp/2
-
 podman cp opennms-container:/opt/opennms/etc/thresholds.xml .
 podman cp opennms-container:/opt/opennms/etc/threshd-configuration.xml .
 
@@ -19,6 +14,12 @@ podman logs -f opennms-container
 
 ### Troubleshoot: ###
 podman exec -it opennms-container grep -R "rpiCpuLoad" /opt/opennms/etc
+
+podman exec opennms-container ls /opt/opennms/share/rrd/snmp
+
+podman exec opennms-container \
+ls -l /opt/opennms/share/rrd/snmp/2
+
 
 Raise alarm not on node level: 
 
