@@ -1,0 +1,36 @@
+# my global config
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+rule_files:
+  # - "first_rules.yml"
+
+scrape_configs:
+  # Job 1: Monitor Prometheus itself (Keep this)
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Job 2: YOUR SNMP JOB (This was missing!)
+  - job_name: 'rpi_snmp'
+    static_configs:
+      - targets:
+        - 192.168.0.38  # <--- IP of your RPi3 Agent
+    metrics_path: /snmp
+    params:
+      module: [rpi_module]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9116  # <--- IP of the SNMP Exporter (RPi4)
