@@ -68,6 +68,15 @@ def main():
     resp = s.post(f"{OPENNMS_URL}/rest/requisitions/{REQ_NAME}/nodes/{FOREIGN_ID}/interfaces", json=intf_payload)
     check_response(resp, "Add Interface")
 
+    # 3.5 Add Category
+    log("Adding Category: Servers")
+    cat_payload = {
+        "name": "Servers"  # Must match an existing category in OpenNMS
+    }
+    # Note the URL path: .../nodes/{FOREIGN_ID}/categories
+    resp = s.post(f"{OPENNMS_URL}/rest/requisitions/{REQ_NAME}/nodes/{FOREIGN_ID}/categories", json=cat_payload)
+    check_response(resp, "Add Category")
+
     # 4. Add Service (SNMP)
     log("Adding Service: SNMP")
     svc_payload = {
