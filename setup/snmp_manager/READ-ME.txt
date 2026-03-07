@@ -1,0 +1,28 @@
+############################
+     RPI-B
+############################     
+
+SNMP Manager/Client
+
+sudo apt install -y snmp snmp-mibs-downloader
+
+snmpwalk -v2c -c public 192.168.0.38 .1.3.6.1.2.1.1
+snmpget -v2c -c public 192.168.0.38 .1.3.6.1.2.1.1.6.0
+snmpwalk -v 2c -c public 192.168.0.38 nsExtendOutput1
+
+
+Manager uses MIBs to interpret: 
+  .1.3.6.1.2.1.2.2.1.8.2 = 2 => eth0 link DOWN
+
+
+sudo cp RPI-MONITOR-MIB.txt /usr/share/snmp/mibs/
+sudo nano /etc/snmp/snmp.conf
+    mibs +RPI-MONITOR-MIB
+
+snmpget -v 2c -c public 192.168.0.38 RPI-MONITOR-MIB::rpiCpuTemp.0
+
+gpu_temp = get_snmp_data(KEY_GPU)
+KEY_GPU = 'NET-SNMP-EXTEND-MIB::nsExtendOutput1Line."gpuTemp"'
+
+
+# sudo cp RPI-MONITOR-MIB.txt /usr/share/snmp/mibs

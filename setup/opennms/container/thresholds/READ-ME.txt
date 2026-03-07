@@ -1,0 +1,81 @@
+podman cp opennms-container:/opt/opennms/etc/thresholds.xml .
+podman cp opennms-container:/opt/opennms/etc/threshd-configuration.xml .
+
+
+podman cp threshd-configuration.xml \
+opennms-container:/opt/opennms/etc/; \
+podman cp thresholds.xml opennms-container:/opt/opennms/etc/; \
+podman restart opennms-container
+
+
+podman exec -it opennms-container /opt/opennms/bin/opennms status
+podman logs -f opennms-container
+
+
+### Troubleshoot: ###
+podman exec -it opennms-container grep -R "rpiCpuLoad" /opt/opennms/etc
+
+podman exec opennms-container ls /opt/opennms/share/rrd/snmp
+
+podman exec opennms-container \
+ls -l /opt/opennms/share/rrd/snmp/2
+
+
+Raise alarm not on node level: 
+
+curl -u admin:admin -X POST -H "Content-Type: application/xml"   -d '<event>
+        <uei>uei.opennms.org/threshold/highThresholdExceeded</uei>
+        <source>Manual-Test</source>
+        <interface>192.168.0.38</interface>
+        <service>SNMP</service>
+        <severity>Warning</severity>
+        <parms>
+           <parm>
+             <parmName>ds</parmName>
+             <value>rpiCpuLoad</value>
+           </parm>
+           <parm>
+             <parmName>value</parmName>
+             <value>45.0</value>
+           </parm>
+           <parm>
+             <parmName>threshold</parmName>
+             <value>20.0</value>
+           </parm>
+           <parm>
+             <parmName>label</parmName>
+             <value>RPi CPU Load</value>
+           </parm>
+        </parms>
+      </event>'   http://192.168.0.39:8980/opennms/rest/events -v
+
+
+Clear Alarm: 
+
+curl -u admin:admin -X POST -H "Content-Type: application/xml" \
+  -d '<event>
+        <uei>uei.opennms.org/threshold/highThresholdRearmed</uei>
+        <source>Manual-Test</source>
+        <interface>192.168.0.38</interface>
+        <service>SNMP</service>
+        <severity>Normal</severity>
+        <parms>
+           <parm>
+             <parmName>ds</parmName>
+             <value>rpiCpuLoad</value>
+           </parm>
+           <parm>
+             <parmName>value</parmName>
+             <value>10.0</value>
+           </parm>
+           <parm>
+             <parmName>threshold</parmName>
+             <value>15.0</value>
+           </parm>
+           <parm>
+             <parmName>label</parmName>
+             <value>RPi CPU Load</value>
+           </parm>
+        </parms>
+      </event>' \
+  http://192.168.0.39:8980/opennms/rest/events

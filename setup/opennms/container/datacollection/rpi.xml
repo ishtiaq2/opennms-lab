@@ -1,0 +1,15 @@
+<datacollection-group xmlns="http://xmlns.opennms.org/xsd/config/datacollection" name="Rpi-Custom">
+
+   <group name="rpi-custom-stats" ifType="ignore">
+      <mibObj oid=".1.3.6.1.3.99.1" instance="1" alias="rpiCpuTemp" type="gauge" />
+      <mibObj oid=".1.3.6.1.3.99.1" instance="2" alias="rpiCpuLoad" type="gauge" />
+   </group>
+
+   <systemDef name="Raspberry Pi Custom">
+      <sysoidMask>.1.3.6.1.3.99</sysoidMask>
+      <collect>
+         <includeGroup>rpi-custom-stats</includeGroup>
+      </collect>
+   </systemDef>
+
+</datacollection-group>

@@ -1,0 +1,26 @@
+podman exec -u 0 -it opennms-container bash
+
+Raise:
+
+podman exec opennms-container /opt/opennms/bin/send-event.pl uei.opennms.org/threshold/highThresholdExceeded \
+  -n 2 \
+  -i 192.168.0.38 \
+  -s SNMP \
+  -x 6 \
+  -p 'ds rpiCpuLoad' \
+  -p 'value 45.0' \
+  -p 'threshold 20.0' \
+  -p 'label RPi CPU Load'
+
+
+  Clear:
+
+  podman exec opennms-container /opt/opennms/bin/send-event.pl uei.opennms.org/threshold/highThresholdRearmed \
+  -n 2 \
+  -i 192.168.0.38 \
+  -s SNMP \
+  -x 3 \
+  -p 'ds rpiCpuLoad' \
+  -p 'value 10.0' \
+  -p 'threshold 20.0' \
+  -p 'label RPi CPU Load'

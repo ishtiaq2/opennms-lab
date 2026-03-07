@@ -1,0 +1,9 @@
+<datacollection-group xmlns="http://xmlns.opennms.org/xsd/config/datacollection" name="Net-SNMP">
+   <systemDef name="Net-SNMP">
+      <sysoidMask>.1.3.6.1.3.99</sysoidMask>
+      <collect>         
+         <includeGroup>rpi-custom-stats</includeGroup>                 
+      </collect>
+   </systemDef>
+   
+</datacollection-group>
