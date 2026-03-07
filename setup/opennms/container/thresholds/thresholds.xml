@@ -78,6 +78,6 @@
     <threshold type="high" ds-type="node" value="30.0" rearm="25.0" trigger="1" 
                ds-label="RPi CPU Load" ds-name="rpiCpuLoad"/>
 
-</group>
+   </group>
 
 </thresholding-config>
