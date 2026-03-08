@@ -2,6 +2,9 @@
 
 This lab uses a nested repository architecture. The parent repository manages the environment, while sub-repositories handle specific tasks
 
+<img width="1557" height="579" alt="image" src="https://github.com/user-attachments/assets/1b45953f-b480-4be4-9b62-1449471b1224" />
+
+
 opennms-lab/ (Parent Repo)
 ├── .git/
 ├── .gitmodules            <-- Configuration for Submodules
