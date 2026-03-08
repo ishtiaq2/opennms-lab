@@ -31,6 +31,7 @@ If you are cloning this repository for the first time, you must include the --re
 # 📋 Prerequisites
   Before cloning, ensure your system has the following tools installed and configured:
   <img width="698" height="389" alt="image" src="https://github.com/user-attachments/assets/b6638e03-0cb8-4f61-9808-6d3bc19c7267" />
+  
   Tool	          Recommended Version	                Purpose
   
   Podman	        4.0+	                              Container engine (Daemonless)
