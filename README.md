@@ -1,3 +1,5 @@
+# This lab is purely for education purpose.
+
 # 📂 Project Structure
 
 This lab uses a nested repository architecture. The parent repository manages the environment, while sub-repositories handle specific tasks
