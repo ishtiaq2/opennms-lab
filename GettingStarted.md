@@ -24,6 +24,7 @@ If you are cloning this repository for the first time, you must include the --re
   
   Navigate to the automation folder and execute the setup script:   
   cd automation/setup/opennms/container
+  chmod +x ./opennms-setup.sh
   ./opennms-setup.sh
   
 # Check if your Podman containers are running:
