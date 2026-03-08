@@ -1,0 +1,10 @@
+<model-import foreign-source="RPI-Lab">
+    <node foreign-id="rpi-b-01" node-label="Raspberry-Pi-B">
+        <interface ip-addr="192.168.0.38" status="1" snmp-primary="P">
+            <monitored-service service-name="ICMP"/>
+            <monitored-service service-name="SNMP"/>
+        </interface>
+        <category name="RaspberryPi"/>
+        <category name="Laboratory"/>
+    </node>
+</model-import>

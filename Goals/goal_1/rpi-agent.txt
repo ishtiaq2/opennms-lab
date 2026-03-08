@@ -1,0 +1,51 @@
+o get your Raspberry Pi (the Agent) to talk to your OpenNMS (the Manager) correctly, we need to configure the snmpd daemon on the Pi to execute a shell command and "wrap" its output into an SNMP OID.
+
+1. The Raspberry Pi Side (Agent Config)
+Open your SNMP configuration on the Pi:
+sudo nano /etc/snmp/snmpd.conf
+
+Add this line to the "Extensions" section. This creates a custom OID that runs the local vcgencmd to get the temperature:
+
+Bash
+# This extends the Agent to run a command and return the output
+extend gpuTemp /usr/bin/vcgencmd measure_temp
+Restart the service:
+sudo systemctl restart snmpd
+
+2. The OpenNMS Side (Manager Automation)
+In your opennms-lab root, we want to automate the data collection. Instead of manual OIDs, we use the "Friendly Name" we just created: gpuTemp.
+
+Update the Collection Group
+Inside your plugins/rpi-collection.xml (which you will eventually sync to /opt/opennms/etc/datacollection/), define the group:
+
+XML
+<group name="rpi-custom-metrics" ifType="all">
+    <mibObj oid=".1.3.6.1.4.1.8072.1.3.2.3.1.1.8.103.112.117.84.101.109.112" 
+            instance="0" 
+            alias="rpiGpuTemp" 
+            type="gauge" />
+</group>
+3. Automating the Setup via automation/
+Since your Goal 1 is education and automation, you should add a "Provisioning" script to your automation submodule that handles the handshake.
+
+Add this logic to your opennms-setup.sh:
+
+Bash
+#!/bin/bash
+# Syncing Custom RPI Configs into the container
+echo "Deploying RPI SNMP configurations..."
+
+# 1. Copy MIB
+podman cp ../../../plugins/RPI-MONITOR-MIB.txt opennms:/usr/share/snmp/mibs/
+
+# 2. Copy Collection config
+podman cp ../../../plugins/rpi-collection.xml opennms:/opt/opennms/etc/datacollection/
+
+# 3. Reload OpenNMS configuration without restarting the whole container
+podman exec opennms /opt/opennms/bin/send-event uei.opennms.org/internal/reloadDaemonConfig --parm 'daemonName collectd'
+📊 Why this OID?
+The long OID .1.3.6.1.4.1.8072.1.3.2.3.1.1.8.103.112.117.84.101.109.112 looks scary, but it’s actually logical:
+
+8072.1.3.2: The Net-SNMP Extend branch.
+
+103.112.117.84.101.109.112: The ASCII decimal values for the string "gpuTemp".

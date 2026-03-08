@@ -43,3 +43,14 @@ opennms-lab/ (Parent Repo)
   Plugin Changes: cd plugins, develop your feature, push to the plugin repo.
 
   Lab Sync: Run nms-sync from the root of opennms-lab to ensure the entire environment reflects your latest work.  
+
+
+# GOALS:
+  ## Goal 1:
+    SNMP Manager.txt:
+    What this means for your OpenNMS Lab
+    In your current opennms-lab setup, this "RPI-B" logic is exactly what you are trying to automate.
+    OpenNMS is your SNMP Manager (replacing the manual snmpget commands).
+    The Submodule automation should eventually contain the "Agent side" configuration (how to set up the NET-SNMP-EXTEND on a target node).
+    The Submodule plugins is where you would build a custom OpenNMS Poller to recognize that specific RPI-MONITOR-MIB automatically.
+      ### How to add this custom RPI-MONITOR-MIB to OpenNMS so it can graph your Raspberry Pi CPU temperature automatically?

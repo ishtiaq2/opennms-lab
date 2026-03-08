@@ -1,4 +1,4 @@
-# Operating System used: 
+# Operating System used
   CentOS 9
 
 
@@ -24,8 +24,8 @@ If you are cloning this repository for the first time, you must include the --re
   
   Navigate to the automation folder and execute the setup script:   
   cd automation/setup/opennms/container
-  ./opennms-setup.shVerify Containers:
-
+  ./opennms-setup.sh
+  
 # Check if your Podman containers are running:
   podman ps
 
