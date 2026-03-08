@@ -1,6 +1,7 @@
-Getting Started
 
-Lab Orchestration & Submodules
+# Getting Started
+
+# Lab Orchestration & Submodules
 
 To add a new component (like a plugin development folder) that has its own main branch and lifecycle:
 Create the repo on GitHub (e.g., opennms-plugins).
@@ -34,4 +35,4 @@ git push origin main
 
    Update the Lab: Once a sub-repo branch is merged to its main on GitHub, simply run nms-sync from anywhere to update the entire lab environment.
 
-   
+
