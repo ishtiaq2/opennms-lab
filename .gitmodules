@@ -1,3 +1,6 @@
 [submodule "automation"]
 	path = automation
 	url = https://github.com/ishtiaq2/opennms-lab2.git
+[submodule "plugins"]
+	path = plugins
+	url = https://github.com/ishtiaq2/opennms-plugins.git
