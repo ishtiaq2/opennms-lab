@@ -38,3 +38,24 @@ opennms-lab/ (Parent Repo)
   Plugin Changes: cd plugins, develop your feature, push to the plugin repo.
 
   Lab Sync: Run nms-sync from the root of opennms-lab to ensure the entire environment reflects your latest work.  
+
+
+
+  opennms-lab/ (Parent Repo)
+├── .git/
+├── .gitmodules            # Configuration for Git submodules
+├── nms.env                # Global Environment Variables
+├── README.md              # This guide
+│
+├── automation/ (Sub-Repo) # Independent repository with its own branches
+│   ├── .git/
+│   └── setup/
+│       └── opennms/
+│           └── container/
+│               ├── opennms-setup.sh   # Main deployment script
+│               └── nms.env            # symlink or copied env file
+│
+└── plugins/ (Sub-Repo)    # Plugin development repository
+    ├── .git/
+    ├── README.md
+    └── src/               # Plugin source code
