@@ -1,3 +1,5 @@
 nano ~/.bashrc
-alias nms-sync='cd /home/my_github_repo/opennms-lab/automation && git pull origin main && cd /home/my_github_repo/opennms-lab && git add automation && git commit -m "chore: sync automation submodule" && git push origin main'
+
+alias nms-sync='git submodule update --remote --merge && cd /home/maven-admin/my_github_repo/opennms-lab && git add . && git commit -m "chore: sync all submodules" && git push origin main'
+
 source ~/.bashrc
