@@ -2,40 +2,60 @@
 set -e
 source ./_0_config.sh
 
-UI_DIR="$PLUGIN_NAME/ui-extension"
+# Target the internal directory of the generated plugin
+UI_DIR="$PLUGIN_DIR/ui-extension"
 
-echo "* Creating Advanced Vue 3 + TS UI structure in: $UI_DIR"
+echo -e "${CLR_GREEN}* Creating Advanced Vue 3 + TS UI structure in: $UI_DIR${CLR_NORMAL}"
 
-# Establish Directory Tree (Consolidated)
+# Establish Directory Tree
 mkdir -p "$UI_DIR/src/router" \
          "$UI_DIR/src/views" \
          "$UI_DIR/src/stores" \
          "$UI_DIR/src/api" \
          "$UI_DIR/src/components/inventory/view/styles"
 
-# 1. package.json
+mkdir -p "$UI_DIR/public"
+touch "$UI_DIR/public/favicon.ico"
+
+# 1. package.json (Synced with your Target JSON)
 cat <<EOF > "$UI_DIR/package.json"
 {
   "name": "ui-extension",
   "version": "1.0.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/uiextension.umd.js",
+  "module": "./dist/uiextension.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/uiextension.es.js",
+      "require": "./dist/uiextension.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite --config vite.config.dev.mts",
     "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite build && vite preview --port 5002",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "vue": "3.5.18",
-    "pinia": "3.0.3",
-    "vue-router": "4.5.1",
+    "@fortawesome/fontawesome-free": "7.0.0",
+    "@fortawesome/fontawesome-svg-core": "7.0.0",
+    "@fortawesome/free-solid-svg-icons": "7.0.0",
+    "@fortawesome/vue-fontawesome": "3.1.1",
+    "@popperjs/core": "2.11.8",
+    "@vueuse/core": "^13.9.0",
     "axios": "^1.13.0",
     "bootstrap": "5.3.7",
     "bootstrap-vue-next": "0.30.4",
-    "@fortawesome/fontawesome-svg-core": "6.5.0",
-    "@fortawesome/free-solid-svg-icons": "6.5.0",
-    "@fortawesome/vue-fontawesome": "3.0.5"
+    "pinia": "3.0.3",
+    "vue-axios": "3.5.2",
+    "vue-router": "4.5.1"
   },
   "devDependencies": {
+    "vue": "3.5.18",
     "vite": "^7.1.12",
     "typescript": "5.9.2",
     "vue-tsc": "3.0.5",
@@ -62,13 +82,15 @@ cat <<EOF > "$UI_DIR/tsconfig.json"
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }
 EOF
 
-# 3. vite.config.ts (Production)
+# 3. vite.config.ts (Fixed Backticks for Bash)
 cat <<EOF > "$UI_DIR/vite.config.ts"
 import path from 'path'
 import { defineConfig } from 'vite'
@@ -100,11 +122,10 @@ export default defineConfig({
 })
 EOF
 
-# 4. vite.config.dev.mts (Development Proxy)
+# 4. vite.config.dev.mts
 cat <<EOF > "$UI_DIR/vite.config.dev.mts"
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
@@ -117,6 +138,9 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       }
+    },
+    watch: {
+      usePolling: true
     }
   }
 })
@@ -136,17 +160,19 @@ const router = createRouter({
 export default router
 EOF
 
-# 6. src/views/HomeView.vue (UPDATED WITH TABLE)
+# 6. src/views/HomeView.vue
 cat <<EOF > "$UI_DIR/src/views/HomeView.vue"
 <template>
   <div class="container mt-4">
     <div class="card shadow-sm">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><font-awesome-icon icon="home" /> Node Inventory: {{ config.user }}</h5>
-        <button class="btn btn-sm btn-light" @click="nodeStore.fetchNodes" :disabled="nodeStore.loading">
-          <font-awesome-icon :icon="nodeStore.loading ? 'coffee' : 'upload'" :spin="nodeStore.loading" /> 
-          {{ nodeStore.loading ? 'Loading...' : 'Refresh' }}
-        </button>
+        <h5 class="mb-0"><font-awesome-icon icon="house" /> Node Inventory: {{ config.user }}</h5>
+        <div class="d-flex gap-2">
+           <input v-model="nodeStore.searchQuery" type="text" class="form-control form-control-sm" placeholder="Search nodes...">
+           <button class="btn btn-sm btn-light" @click="nodeStore.fetchNodes" :disabled="nodeStore.loading">
+             <font-awesome-icon :icon="nodeStore.loading ? 'coffee' : 'upload'" :spin="nodeStore.loading" />
+           </button>
+        </div>
       </div>
       <div class="card-body">
         <div v-if="nodeStore.loading && nodeStore.nodes.length === 0" class="text-center py-5">
@@ -166,7 +192,7 @@ cat <<EOF > "$UI_DIR/src/views/HomeView.vue"
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="node in nodeStore.nodes" :key="node.id">
+                <tr v-for="node in nodeStore.filteredNodes" :key="node.id">
                   <td><span class="badge bg-secondary">{{ node.id }}</span></td>
                   <td><strong>{{ node.label }}</strong></td>
                   <td><code class="text-muted">{{ node.foreignSource || 'None' }}</code></td>
@@ -175,15 +201,11 @@ cat <<EOF > "$UI_DIR/src/views/HomeView.vue"
                     <span class="ms-1 small">Provisioned</span>
                   </td>
                 </tr>
-                <tr v-if="nodeStore.nodes.length === 0">
-                  <td colspan="4" class="text-center py-4 text-muted">No nodes found in this instance.</td>
+                <tr v-if="nodeStore.filteredNodes.length === 0">
+                  <td colspan="4" class="text-center py-4 text-muted">No nodes match your search.</td>
                 </tr>
               </tbody>
             </table>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-             <small class="text-muted">Showing {{ nodeStore.nodes.length }} of {{ nodeStore.totalCount }} total nodes.</small>
-             <span class="badge bg-info text-dark">OpenNMS API v1</span>
           </div>
         </div>
       </div>
@@ -204,7 +226,6 @@ onMounted(() => {
 })
 </script>
 EOF
-
 
 # 7. src/stores/appConfig.ts
 cat <<EOF > "$UI_DIR/src/stores/appConfig.ts"
@@ -244,17 +265,17 @@ import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 import "./components/inventory/view/styles/requisitions.scss"
 
 import {
-  faUser, faCoffee, faBars, faHome, faBook, faAddressBook,
+  faUser, faCoffee, faBars, faHouse, faBook, faAddressBook,
   faBookReader, faArrowDown, faDirections, faExpand,
   faAngleDoubleDown, faAngleDoubleRight, faAngleRight, faAngleDown, faInfoCircle,
-  faTimesCircle, faTriangleExclamation, faUpload
+  faCircleCheck, faTriangleExclamation, faUpload
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
-  faUser, faCoffee, faBars, faHome, faBook, faAddressBook,
+  faUser, faCoffee, faBars, faHouse, faBook, faAddressBook,
   faBookReader, faArrowDown, faDirections, faExpand,
   faAngleDoubleRight, faAngleDoubleDown, faAngleRight, faAngleDown, faInfoCircle,
-  faTimesCircle, faTriangleExclamation, faUpload
+  faCircleCheck, faTriangleExclamation, faUpload
 )
 
 // @ts-ignore
@@ -266,9 +287,11 @@ export default function (container: HTMLElement, config: any) {
     app.use(pinia)
     const store = useAppConfig(pinia)
     store.setConfig(config)
-    app.use(router).use(createBootstrap())
-    app.component('font-awesome-icon', FontAwesomeIcon)
-    app.mount(container)
+    
+    app.use(router)
+       .use(createBootstrap())
+       .component('font-awesome-icon', FontAwesomeIcon)
+       .mount(container)
 }
 
 if (import.meta.env.MODE === 'development') {
@@ -277,13 +300,15 @@ if (import.meta.env.MODE === 'development') {
   app.use(pinia)
   const store = useAppConfig(pinia)
   store.setConfig({ userName: 'DevUser', theme: 'light', baseUrl: '/opennms' })
-  app.use(router).use(createBootstrap())
-  app.component('font-awesome-icon', FontAwesomeIcon)
-  app.mount('#app')
+  
+  app.use(router)
+     .use(createBootstrap())
+     .component('font-awesome-icon', FontAwesomeIcon)
+     .mount('#app')
 }
 EOF
 
-# 9. src/api/client.ts (Crucial Bash Escaping Applied)
+# 9. src/api/client.ts (Fixed Escaped Dollar Sign)
 cat <<EOF > "$UI_DIR/src/api/client.ts"
 import axios from 'axios'
 import { useAppConfig } from '../stores/appConfig'
@@ -309,26 +334,28 @@ client.interceptors.request.use((config) => {
 export default client
 EOF
 
-# 10. src/stores/nodeStore.ts (UPDATED WITH ARRAY LOGIC)
+# 10. src/stores/nodeStore.ts
 cat <<EOF > "$UI_DIR/src/stores/nodeStore.ts"
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import client from '../api/client'
 
 export const useNodeStore = defineStore('nodeStore', () => {
   const nodes = ref<any[]>([])
-  const totalCount = ref(0)
   const loading = ref(false)
+  const searchQuery = ref('')
+
+  const filteredNodes = computed(() => {
+    return nodes.value.filter(n => 
+      n.label.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  })
 
   async function fetchNodes() {
     loading.value = true
     try {
-      // Requesting the first 25 nodes from the OpenNMS REST API
-      const response = await client.get('/rest/nodes', { params: { limit: 25 } })
-      
-      // OpenNMS returns { node: [...], totalCount: X }
+      const response = await client.get('/rest/nodes', { params: { limit: 50 } })
       nodes.value = response.data.node || []
-      totalCount.value = response.data.totalCount || 0
     } catch (error) {
       console.error('API Error:', error)
       nodes.value = []
@@ -337,11 +364,11 @@ export const useNodeStore = defineStore('nodeStore', () => {
     }
   }
 
-  return { nodes, totalCount, loading, fetchNodes }
+  return { nodes, filteredNodes, loading, fetchNodes, searchQuery }
 })
 EOF
 
-# 11. index.html (Local Dev Entry Point)
+# 11. index.html
 cat <<EOF > "$UI_DIR/index.html"
 <!DOCTYPE html>
 <html lang="en">
@@ -349,9 +376,6 @@ cat <<EOF > "$UI_DIR/index.html"
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${PLUGIN_DESCRIPTION} - Dev</title>
-    <style>
-      body { margin: 0; padding: 0; background-color: #f8f9fa; }
-    </style>
   </head>
   <body>
     <div id="app"></div>
@@ -360,7 +384,7 @@ cat <<EOF > "$UI_DIR/index.html"
 </html>
 EOF
 
-# 12. Final Cleanup and Assets
+# 12. Final Assets
 touch "$UI_DIR/src/components/inventory/view/styles/requisitions.scss"
 cat <<EOF > "$UI_DIR/src/App.vue"
 <template>
@@ -368,4 +392,4 @@ cat <<EOF > "$UI_DIR/src/App.vue"
 </template>
 EOF
 
-echo -e "${CLR_GREEN}Advanced UI Scaffold with Node Table Complete!${CLR_NORMAL}"
+echo -e "${CLR_GREEN}✅ Step 4 Complete: UI Folder created at $UI_DIR${CLR_NORMAL}"

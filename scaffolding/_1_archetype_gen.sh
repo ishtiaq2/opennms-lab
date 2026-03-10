@@ -4,27 +4,21 @@
 # Purpose: Generates a plugin skeleton and cleans out archetype boilerplate
 # ==============================================================================
 
-REPO_VER="1.6.1"
-KARAF_VER="4.3.10"
-MAVEN_BUNDLE_PLUGIN_VER="5.1.2"
-PLUGIN_VERSION="1.0.0"
-PLUGIN_NAME="my_plugin_name"
-PLUGIN_DESCRIPTION="my_plugin_description"
-UI_EXTENSION_DIR="ui-$PLUGIN_NAME"
-COMPANY="mycompany"
-OPENNMS_REPO="$HOME/my_github_repo/opennms-lab/"
-HERE=`pwd`
+set -e
+source ./_0_config.sh
 
-# --- Step 1: Initial Cleanup ---
-# Ensure we aren't working on top of an old build
-if [ -d "$PLUGIN_NAME" ]; then
-  echo "* Removing existing plugin directory: $PLUGIN_NAME"
-  rm -rf -- "$PLUGIN_NAME"
+# Cleanup existing
+if [ -d "$PLUGIN_DIR" ]; then
+  echo -e "${CLR_RED}* Removing old plugin at $PLUGIN_DIR${CLR_NORMAL}"
+  rm -rf "$PLUGIN_DIR"
 fi  
 
-# --- Step 2: Skeleton Generation ---
-echo "* Generating Maven archetype..."
+# Create and Enter Plugins Root
+mkdir -p "$PLUGINS_ROOT"
+cd "$PLUGINS_ROOT"
 
+# Generate
+echo -e "${CLR_GREEN}* Generating $PLUGIN_NAME...${CLR_NORMAL}"
 mvn archetype:generate -B \
   -DarchetypeGroupId=org.opennms.integration.api \
   -DarchetypeArtifactId=example-kar-plugin \
@@ -36,29 +30,9 @@ mvn archetype:generate -B \
   -DpluginId=$PLUGIN_NAME \
   -DpluginName="$PLUGIN_DESCRIPTION"
 
-# --- Step 3: Boilerplate Removal ---
-# The archetype creates several "Example" files we usually don't want.
-echo "* Cleaning boilerplate from generated source folders..."
+# Cleanup Boilerplate using the absolute path
+rm -rf "$PLUGIN_DIR/plugin/src/main/java/com/$COMPANY/$PLUGIN_NAME"/*
+rm -rf "$PLUGIN_DIR/plugin/src/main/resources/events"/*
+rm -rf "$PLUGIN_DIR/plugin/src/test"/*
 
-# 1. Clear Java source files (removes ExampleListener.java, etc.)
-JAVA_SRC_DIR="$PLUGIN_NAME/plugin/src/main/java/com/$COMPANY/$PLUGIN_NAME"
-if [ -d "$JAVA_SRC_DIR" ]; then
-    rm -rf "${JAVA_SRC_DIR:?}"/*
-    echo "  - Cleared: $JAVA_SRC_DIR"
-fi
-
-# 2. Clear events configuration (removes example event XMLs)
-EVENTS_DIR="$PLUGIN_NAME/plugin/src/main/resources/events"
-if [ -d "$EVENTS_DIR" ]; then
-    rm -rf "${EVENTS_DIR:?}"/*
-    echo "  - Cleared: $EVENTS_DIR"
-fi
-
-# 3. Clear all test files
-TEST_DIR="$PLUGIN_NAME/plugin/src/test"
-if [ -d "$TEST_DIR" ]; then
-    rm -rf "${TEST_DIR:?}"/*
-    echo "  - Cleared: $TEST_DIR"
-fi
-
-echo "* Scaffolding complete. Ready for custom code injection."
+echo -e "${CLR_GREEN}✅ Success! Project is in $PLUGIN_DIR${CLR_NORMAL}"
